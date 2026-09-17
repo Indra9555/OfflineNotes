@@ -18,21 +18,24 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 public class MainActivity extends AppCompatActivity {
 
     private FloatingActionButton fabAddNote;
-
     private LinearLayout notesContainer;
-
     private View emptyState;
 
     private TextView tvConnectionStatus;
     private TextView tvSyncStatus;
-
+    private TextView tvLastSynced;
     private TextView btnSync;
 
     private EditText etSearch;
@@ -40,9 +43,7 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences preferences;
 
     private ConnectivityManager connectivityManager;
-
     private ConnectivityManager.NetworkCallback networkCallback;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,11 +51,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-
-
-        // ==========================================
-        // UI
-        // ==========================================
 
         fabAddNote =
                 findViewById(R.id.fabAddNote);
@@ -71,27 +67,20 @@ public class MainActivity extends AppCompatActivity {
         tvSyncStatus =
                 findViewById(R.id.tvSyncStatus);
 
+        tvLastSynced =
+                findViewById(R.id.tvLastSynced);
+
         btnSync =
                 findViewById(R.id.btnSync);
 
         etSearch =
                 findViewById(R.id.etSearch);
 
-
-        // ==========================================
-        // LOCAL STORAGE
-        // ==========================================
-
         preferences =
                 getSharedPreferences(
                         "NotesData",
                         MODE_PRIVATE
                 );
-
-
-        // ==========================================
-        // ADD NOTE
-        // ==========================================
 
         fabAddNote.setOnClickListener(v -> {
 
@@ -104,19 +93,9 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-
-        // ==========================================
-        // SYNC
-        // ==========================================
-
         btnSync.setOnClickListener(v ->
                 performSync()
         );
-
-
-        // ==========================================
-        // SEARCH
-        // ==========================================
 
         etSearch.addTextChangedListener(
                 new TextWatcher() {
@@ -129,7 +108,6 @@ public class MainActivity extends AppCompatActivity {
                             int after
                     ) {
                     }
-
 
                     @Override
                     public void onTextChanged(
@@ -144,7 +122,6 @@ public class MainActivity extends AppCompatActivity {
                         );
                     }
 
-
                     @Override
                     public void afterTextChanged(
                             Editable s
@@ -153,25 +130,16 @@ public class MainActivity extends AppCompatActivity {
                 }
         );
 
-
-        // ==========================================
-        // INITIAL STATUS
-        // ==========================================
-
         updateConnectionStatus();
 
         updateSyncStatus();
 
+        updateLastSynced();
+
         loadNotes("");
-
-
-        // ==========================================
-        // NETWORK MONITORING
-        // ==========================================
 
         startNetworkMonitoring();
     }
-
 
     @Override
     protected void onResume() {
@@ -179,20 +147,16 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         String searchText =
-                etSearch.getText()
-                        .toString();
+                etSearch.getText().toString();
 
         loadNotes(searchText);
 
         updateConnectionStatus();
 
         updateSyncStatus();
+
+        updateLastSynced();
     }
-
-
-    // ==========================================
-    // LOAD NOTES
-    // ==========================================
 
     private void loadNotes(
             String searchText
@@ -205,7 +169,6 @@ public class MainActivity extends AppCompatActivity {
                         "notes",
                         ""
                 );
-
 
         if (savedNotes.isEmpty()) {
 
@@ -220,18 +183,15 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-
         String[] notes =
                 savedNotes.split("##");
 
         boolean foundNotes = false;
 
-
         String search =
                 searchText
                         .trim()
                         .toLowerCase();
-
 
         for (int i = 0;
              i < notes.length;
@@ -243,11 +203,9 @@ public class MainActivity extends AppCompatActivity {
                             2
                     );
 
-
             if (parts.length < 2) {
                 continue;
             }
-
 
             String title =
                     parts[0];
@@ -255,21 +213,19 @@ public class MainActivity extends AppCompatActivity {
             String content =
                     parts[1];
 
-
             String searchableText =
                     (title + " " + content)
                             .toLowerCase();
 
-
             if (!search.isEmpty() &&
-                    !searchableText.contains(search)) {
+                    !searchableText.contains(
+                            search
+                    )) {
 
                 continue;
             }
 
-
             foundNotes = true;
-
 
             addNoteCard(
                     title,
@@ -277,7 +233,6 @@ public class MainActivity extends AppCompatActivity {
                     i
             );
         }
-
 
         if (foundNotes) {
 
@@ -297,20 +252,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
-    // ==========================================
-    // NOTE CARD
-    // ==========================================
-
     private void addNoteCard(
             String title,
             String content,
             int noteIndex
     ) {
-
-        // ======================================
-        // CARD
-        // ======================================
 
         LinearLayout card =
                 new LinearLayout(this);
@@ -322,7 +268,6 @@ public class MainActivity extends AppCompatActivity {
         card.setBackgroundResource(
                 R.drawable.note_card_background
         );
-
 
         LinearLayout.LayoutParams cardParams =
                 new LinearLayout.LayoutParams(
@@ -337,14 +282,7 @@ public class MainActivity extends AppCompatActivity {
                 14
         );
 
-        card.setLayoutParams(
-                cardParams
-        );
-
-
-        // ======================================
-        // TITLE
-        // ======================================
+        card.setLayoutParams(cardParams);
 
         TextView titleView =
                 new TextView(this);
@@ -365,11 +303,6 @@ public class MainActivity extends AppCompatActivity {
                 null,
                 Typeface.BOLD
         );
-
-
-        // ======================================
-        // CONTENT
-        // ======================================
 
         TextView contentView =
                 new TextView(this);
@@ -395,11 +328,6 @@ public class MainActivity extends AppCompatActivity {
                 14
         );
 
-
-        // ======================================
-        // ACTION ROW
-        // ======================================
-
         LinearLayout actionRow =
                 new LinearLayout(this);
 
@@ -410,11 +338,6 @@ public class MainActivity extends AppCompatActivity {
         actionRow.setGravity(
                 Gravity.CENTER_VERTICAL
         );
-
-
-        // ======================================
-        // EDIT BUTTON
-        // ======================================
 
         TextView editButton =
                 createActionButton(
@@ -430,7 +353,6 @@ public class MainActivity extends AppCompatActivity {
                                 255
                         )
                 );
-
 
         LinearLayout.LayoutParams editParams =
                 new LinearLayout.LayoutParams(
@@ -451,7 +373,6 @@ public class MainActivity extends AppCompatActivity {
                 editParams
         );
 
-
         editButton.setOnClickListener(v ->
                 openEditNote(
                         title,
@@ -459,11 +380,6 @@ public class MainActivity extends AppCompatActivity {
                         noteIndex
                 )
         );
-
-
-        // ======================================
-        // DELETE BUTTON
-        // ======================================
 
         TextView deleteButton =
                 createActionButton(
@@ -479,7 +395,6 @@ public class MainActivity extends AppCompatActivity {
                                 241
                         )
                 );
-
 
         LinearLayout.LayoutParams deleteParams =
                 new LinearLayout.LayoutParams(
@@ -500,15 +415,12 @@ public class MainActivity extends AppCompatActivity {
                 deleteParams
         );
 
-
         deleteButton.setOnClickListener(v ->
-                deleteNote(noteIndex)
+                showDeleteConfirmation(
+                        title,
+                        noteIndex
+                )
         );
-
-
-        // ======================================
-        // ADD BUTTONS
-        // ======================================
 
         actionRow.addView(
                 editButton
@@ -518,47 +430,22 @@ public class MainActivity extends AppCompatActivity {
                 deleteButton
         );
 
-
-        // ======================================
-        // CARD CLICK
-        // ======================================
-
-        card.setOnClickListener(v -> {
-
-            openEditNote(
-                    title,
-                    content,
-                    noteIndex
-            );
-        });
-
-
-        // ======================================
-        // ADD TO CARD
-        // ======================================
-
-        card.addView(
-                titleView
+        card.setOnClickListener(v ->
+                openEditNote(
+                        title,
+                        content,
+                        noteIndex
+                )
         );
 
-        card.addView(
-                contentView
-        );
+        card.addView(titleView);
 
-        card.addView(
-                actionRow
-        );
+        card.addView(contentView);
 
+        card.addView(actionRow);
 
-        notesContainer.addView(
-                card
-        );
+        notesContainer.addView(card);
     }
-
-
-    // ==========================================
-    // CREATE ACTION BUTTON
-    // ==========================================
 
     private TextView createActionButton(
             String text,
@@ -569,8 +456,6 @@ public class MainActivity extends AppCompatActivity {
         TextView button =
                 new TextView(this);
 
-
-        // Text
         button.setText(text);
 
         button.setTextSize(14);
@@ -584,14 +469,10 @@ public class MainActivity extends AppCompatActivity {
                 Typeface.BOLD
         );
 
-
-        // Alignment
         button.setGravity(
                 Gravity.CENTER
         );
 
-
-        // Padding
         button.setPadding(
                 12,
                 0,
@@ -599,8 +480,6 @@ public class MainActivity extends AppCompatActivity {
                 0
         );
 
-
-        // Background
         GradientDrawable background =
                 new GradientDrawable();
 
@@ -612,25 +491,16 @@ public class MainActivity extends AppCompatActivity {
                 12
         );
 
-
         button.setBackground(
                 background
         );
 
-
-        // Make it clickable
         button.setClickable(true);
 
         button.setFocusable(true);
 
-
         return button;
     }
-
-
-    // ==========================================
-    // CONTENT PREVIEW
-    // ==========================================
 
     private String getContentPreview(
             String content
@@ -641,17 +511,11 @@ public class MainActivity extends AppCompatActivity {
             return content;
         }
 
-
         return content.substring(
                 0,
                 120
         ) + "...";
     }
-
-
-    // ==========================================
-    // OPEN EDIT NOTE
-    // ==========================================
 
     private void openEditNote(
             String title,
@@ -665,32 +529,52 @@ public class MainActivity extends AppCompatActivity {
                         AddNoteActivity.class
                 );
 
-
         intent.putExtra(
                 "noteIndex",
                 noteIndex
         );
-
 
         intent.putExtra(
                 "noteTitle",
                 title
         );
 
-
         intent.putExtra(
                 "noteContent",
                 content
         );
 
-
         startActivity(intent);
     }
 
+    private void showDeleteConfirmation(
+            String title,
+            int noteIndex
+    ) {
 
-    // ==========================================
-    // DELETE NOTE
-    // ==========================================
+        AlertDialog dialog =
+                new AlertDialog.Builder(this)
+                        .setTitle("Delete Note?")
+                        .setMessage(
+                                "Are you sure you want to delete \""
+                                        + title
+                                        + "\"?"
+                        )
+                        .setNegativeButton(
+                                "Cancel",
+                                null
+                        )
+                        .setPositiveButton(
+                                "Delete",
+                                (dialogInterface, which) ->
+                                        deleteNote(
+                                                noteIndex
+                                        )
+                        )
+                        .create();
+
+        dialog.show();
+    }
 
     private void deleteNote(
             int noteIndex
@@ -702,15 +586,12 @@ public class MainActivity extends AppCompatActivity {
                         ""
                 );
 
-
         if (savedNotes.isEmpty()) {
             return;
         }
 
-
         String[] notes =
                 savedNotes.split("##");
-
 
         if (noteIndex < 0 ||
                 noteIndex >= notes.length) {
@@ -718,10 +599,8 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-
         StringBuilder updatedNotes =
                 new StringBuilder();
-
 
         for (int i = 0;
              i < notes.length;
@@ -731,7 +610,6 @@ public class MainActivity extends AppCompatActivity {
                 continue;
             }
 
-
             if (updatedNotes.length() > 0) {
 
                 updatedNotes.append(
@@ -739,12 +617,10 @@ public class MainActivity extends AppCompatActivity {
                 );
             }
 
-
             updatedNotes.append(
                     notes[i]
             );
         }
-
 
         preferences.edit()
                 .putString(
@@ -757,16 +633,12 @@ public class MainActivity extends AppCompatActivity {
                 )
                 .apply();
 
-
         String searchText =
-                etSearch.getText()
-                        .toString();
-
+                etSearch.getText().toString();
 
         loadNotes(searchText);
 
         updateSyncStatus();
-
 
         Toast.makeText(
                 this,
@@ -774,11 +646,6 @@ public class MainActivity extends AppCompatActivity {
                 Toast.LENGTH_SHORT
         ).show();
     }
-
-
-    // ==========================================
-    // INTERNET CHECK
-    // ==========================================
 
     private boolean isInternetAvailable() {
 
@@ -788,26 +655,21 @@ public class MainActivity extends AppCompatActivity {
                                 CONNECTIVITY_SERVICE
                         );
 
-
         if (cm == null) {
             return false;
         }
 
-
         Network network =
                 cm.getActiveNetwork();
-
 
         if (network == null) {
             return false;
         }
 
-
         NetworkCapabilities capabilities =
                 cm.getNetworkCapabilities(
                         network
                 );
-
 
         return capabilities != null &&
                 capabilities.hasCapability(
@@ -815,11 +677,6 @@ public class MainActivity extends AppCompatActivity {
                                 .NET_CAPABILITY_INTERNET
                 );
     }
-
-
-    // ==========================================
-    // CONNECTION STATUS
-    // ==========================================
 
     private void updateConnectionStatus() {
 
@@ -829,18 +686,29 @@ public class MainActivity extends AppCompatActivity {
                     "● Online"
             );
 
+            tvConnectionStatus.setTextColor(
+                    Color.rgb(
+                            76,
+                            175,
+                            80
+                    )
+            );
+
         } else {
 
             tvConnectionStatus.setText(
                     "● Offline"
             );
+
+            tvConnectionStatus.setTextColor(
+                    Color.rgb(
+                            214,
+                            69,
+                            69
+                    )
+            );
         }
     }
-
-
-    // ==========================================
-    // SYNC STATUS
-    // ==========================================
 
     private void updateSyncStatus() {
 
@@ -850,10 +718,8 @@ public class MainActivity extends AppCompatActivity {
                         false
                 );
 
-
         boolean online =
                 isInternetAvailable();
-
 
         if (!online && pending) {
 
@@ -875,10 +741,27 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void updateLastSynced() {
 
-    // ==========================================
-    // PERFORM SYNC
-    // ==========================================
+        String lastSynced =
+                preferences.getString(
+                        "lastSynced",
+                        ""
+                );
+
+        if (lastSynced.isEmpty()) {
+
+            tvLastSynced.setText(
+                    "Last synced: Never"
+            );
+
+        } else {
+
+            tvLastSynced.setText(
+                    "Last synced: " + lastSynced
+            );
+        }
+    }
 
     private void performSync() {
 
@@ -890,19 +773,16 @@ public class MainActivity extends AppCompatActivity {
                     Toast.LENGTH_SHORT
             ).show();
 
-
             updateSyncStatus();
 
             return;
         }
-
 
         boolean pending =
                 preferences.getBoolean(
                         "syncPending",
                         false
                 );
-
 
         if (!pending) {
 
@@ -915,20 +795,30 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        String currentTime =
+                new SimpleDateFormat(
+                        "dd MMM yyyy, hh:mm a",
+                        Locale.getDefault()
+                ).format(
+                        new Date()
+                );
 
-        // Simulated synchronization
         preferences.edit()
                 .putBoolean(
                         "syncPending",
                         false
                 )
+                .putString(
+                        "lastSynced",
+                        currentTime
+                )
                 .apply();
-
 
         tvSyncStatus.setText(
                 "● Synced"
         );
 
+        updateLastSynced();
 
         Toast.makeText(
                 this,
@@ -936,11 +826,6 @@ public class MainActivity extends AppCompatActivity {
                 Toast.LENGTH_SHORT
         ).show();
     }
-
-
-    // ==========================================
-    // NETWORK MONITORING
-    // ==========================================
 
     private void startNetworkMonitoring() {
 
@@ -950,11 +835,9 @@ public class MainActivity extends AppCompatActivity {
                                 CONNECTIVITY_SERVICE
                         );
 
-
         if (connectivityManager == null) {
             return;
         }
-
 
         networkCallback =
                 new ConnectivityManager.NetworkCallback() {
@@ -970,10 +853,17 @@ public class MainActivity extends AppCompatActivity {
                                     "● Online"
                             );
 
+                            tvConnectionStatus.setTextColor(
+                                    Color.rgb(
+                                            76,
+                                            175,
+                                            80
+                                    )
+                            );
+
                             updateSyncStatus();
                         });
                     }
-
 
                     @Override
                     public void onLost(
@@ -986,22 +876,24 @@ public class MainActivity extends AppCompatActivity {
                                     "● Offline"
                             );
 
+                            tvConnectionStatus.setTextColor(
+                                    Color.rgb(
+                                            214,
+                                            69,
+                                            69
+                                    )
+                            );
+
                             updateSyncStatus();
                         });
                     }
                 };
-
 
         connectivityManager
                 .registerDefaultNetworkCallback(
                         networkCallback
                 );
     }
-
-
-    // ==========================================
-    // STOP NETWORK MONITORING
-    // ==========================================
 
     private void stopNetworkMonitoring() {
 
@@ -1016,7 +908,6 @@ public class MainActivity extends AppCompatActivity {
             networkCallback = null;
         }
     }
-
 
     @Override
     protected void onDestroy() {
