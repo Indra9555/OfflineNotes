@@ -1,14 +1,6 @@
 ```markdown
 # 📝 Offline-First Notes
 
-<p align="left">
-  <a href="[https://github.com/Indra9555/OfflineNotes](https://github.com/Indra9555/OfflineNotes)"><img src="[https://img.shields.io/github/stars/Indra9555/OfflineNotes?style=for-the-badge&logo=github&color=007ACC](https://img.shields.io/github/stars/Indra9555/OfflineNotes?style=for-the-badge&logo=github&color=007ACC)" alt="GitHub Stars" /></a>
-  <a href="[https://github.com/Indra9555/OfflineNotes/network/members](https://github.com/Indra9555/OfflineNotes/network/members)"><img src="[https://img.shields.io/github/forks/Indra9555/OfflineNotes?style=for-the-badge&logo=github&color=007ACC](https://img.shields.io/github/forks/Indra9555/OfflineNotes?style=for-the-badge&logo=github&color=007ACC)" alt="GitHub Forks" /></a>
-  <a href="[https://github.com/Indra9555/OfflineNotes/issues](https://github.com/Indra9555/OfflineNotes/issues)"><img src="[https://img.shields.io/github/issues/Indra9555/OfflineNotes?style=for-the-badge&logo=github&color=007ACC](https://img.shields.io/github/issues/Indra9555/OfflineNotes?style=for-the-badge&logo=github&color=007ACC)" alt="GitHub Issues" /></a>
-  <a href="[https://developer.android.com/](https://developer.android.com/)"><img src="[https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white](https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)" alt="Platform" /></a>
-  <a href="[https://www.java.com/](https://www.java.com/)"><img src="[https://img.shields.io/badge/Language-Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white](https://img.shields.io/badge/Language-Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)" alt="Language" /></a>
-  <a href="[https://material.io/](https://material.io/)"><img src="[https://img.shields.io/badge/UI-Material_Design-757575?style=for-the-badge&logo=materialdesign&logoColor=white](https://img.shields.io/badge/UI-Material_Design-757575?style=for-the-badge&logo=materialdesign&logoColor=white)" alt="Material Design" /></a>
-</p>
 
 A simple Android notes application designed to demonstrate important **Mobile Computing concepts**, including offline computing, intermittent connectivity, local data storage, network awareness, and synchronization.
 
